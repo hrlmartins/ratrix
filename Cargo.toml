@@ -1,0 +1,8 @@
+[package]
+name = "ratrix"
+version = "0.1.0"
+authors = ["Helder Martins <heldermartins89@gmail.com>"]
+
+[dependencies.clap]
+version = "2.32.0"
+features = ["yaml"]
