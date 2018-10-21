@@ -3,15 +3,17 @@ version: "0.1.0"
 author:  Helder M.
 about: Helper reading CGD Matrix Card
 args:
-    - file:
-        short: f 
-        long: file
-        help: Sets the Matrix card
-        takes_value: true
-        value_name: FILE
-    - positions:
-        short: p
-        long: positions
-        help: The wanted matrix positions separated by columns
-        takes_value: true
-        value_name: POSITIONS
+- file:
+    short: f
+    long: file
+    help: Sets the Matrix card
+    takes_value: true
+    value_name: FILE
+    required: true
+- positions:
+    short: p
+    long: positions
+    help: The wanted matrix positions separated by columns
+    takes_value: true
+    value_name: POSITIONS
+    required: true
