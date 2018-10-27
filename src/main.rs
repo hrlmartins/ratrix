@@ -7,6 +7,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 use std::process::Command;
+use std::str::FromStr;
 
 fn main() {
     let yaml = load_yaml!("../cmd.yml");
@@ -28,14 +29,65 @@ fn process_request(matches: ArgMatches) {
         process::exit(1);
     });
 
+    // TODO DELETE
     println!("file contents:\n {}\n", file.contents);
     // - process into friendly format
+    let process_result = process_file_contents(&file);
     // - Retrieve and print the values required based on the positions provided
     // - delete the decrypted file before exiting the application.
     delete_temp_file(file.name.as_str()).unwrap_or_else(|err| {
         eprintln!("Problem deleting the temporary file:\n{}\n", err);
         process::exit(1);
     });
+}
+
+fn process_file_contents(file: &File) -> Matrix {
+    let contents = file.get_contents();
+    let lines = contents.lines();
+    let mut matrix: [[Cell; 8]; 8];
+
+    for (i, line) in lines.enumerate() {
+        let cells = line.split(";");
+        for (j, cell) in cells.enumerate() {
+            let mut values: [i32; 3];
+            let codes = cell.split(",");
+            for (k, code) in codes.enumerate() {
+                values[k] = FromStr::from_str(code).unwrap();
+            }
+
+            matrix[i][j] = Cell::new(values);
+        }
+    }
+
+    Matrix::new(matrix)
+}
+
+struct Cell {
+    values: [i32; 3],
+}
+
+impl Cell {
+    pub fn new(values: [i32; 3]) -> Cell {
+        Cell { values }
+    }
+
+    pub fn get_position(&self, pos: u32) -> i32 {
+        self.values[pos as usize]
+    }
+}
+
+struct Matrix {
+    data: [[Cell; 8]; 8]
+}
+
+impl Matrix {
+    pub fn new(data: [[Cell; 8]; 8]) -> Matrix {
+        Matrix { data }
+    }
+
+    pub fn get_cell_position(&self, row: u32, column: u32) -> &Cell {
+        &self.data[row as usize][column as usize]
+    }
 }
 
 struct File {
@@ -47,6 +99,10 @@ impl File {
     pub fn new(name: String, contents: String) -> File {
         // TODO check if filename is empty... shouldn't happen... but never know
         File { name, contents }
+    }
+
+    pub fn get_contents<'a>(self) -> &'a str {
+        &self.contents
     }
 }
 
