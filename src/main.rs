@@ -3,6 +3,7 @@ extern crate clap;
 
 use clap::App;
 use clap::ArgMatches;
+
 use std::fs;
 use std::path::Path;
 use std::process;
@@ -29,16 +30,48 @@ fn process_request(matches: ArgMatches) {
         process::exit(1);
     });
 
-    // TODO DELETE
-    println!("file contents:\n {}\n", file.contents);
     // - process into friendly format
-    let process_result = process_file_contents(&file);
+    let matrix = process_file_contents(&file);
+
     // - Retrieve and print the values required based on the positions provided
+    print_values(&matrix, matrix_positions);
+
     // - delete the decrypted file before exiting the application.
     delete_temp_file(file.name.as_str()).unwrap_or_else(|err| {
         eprintln!("Problem deleting the temporary file:\n{}\n", err);
         process::exit(1);
     });
+}
+
+fn print_values(matrix: &Matrix, positions: &str) {
+    let positions_separated = positions.split(",");
+    for position in positions_separated {
+        print_position_value(matrix, position);
+    }
+}
+
+fn print_position_value(matrix: &Matrix, position: &str) {
+    let converted = position.chars().map(|ch| convert_position(ch)).collect();
+    let value = matrix.get_cell_value(
+        converted.get(0),
+        converted.get(1),
+        converted.get(2)
+    );
+
+    println!("{}: {}", position, value);
+}
+
+fn convert_position(ch: char) -> i32 {
+    match ch {
+        'A' | '1' => 0,
+        'B' | '2' => 1,
+        'C' | '3' => 2,
+        'D' | '4' => 3,
+        'E' | '5' => 4,
+        'F' | '6' => 5,
+        'G' | '7' => 6,
+        'H' | '8' => 7,
+    }
 }
 
 fn process_file_contents(file: &File) -> Matrix {
@@ -87,6 +120,11 @@ impl Matrix {
 
     pub fn get_cell_position(&self, row: u32, column: u32) -> &Cell {
         &self.data[row as usize][column as usize]
+    }
+
+    pub fn get_cell_value(&self, row: u32, column: u32, position: u32) -> i32 {
+        let cell = self.get_cell_position(row, column);
+        cell.get_position(position)
     }
 }
 
