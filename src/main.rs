@@ -51,17 +51,17 @@ fn print_values(matrix: &Matrix, positions: &str) {
 }
 
 fn print_position_value(matrix: &Matrix, position: &str) {
-    let converted = position.chars().map(|ch| convert_position(ch)).collect();
+    let converted: Vec<u32> = position.chars().map(|ch| convert_position(ch)).collect();
     let value = matrix.get_cell_value(
-        converted.get(0),
-        converted.get(1),
-        converted.get(2)
+        converted[0],
+        converted[1],
+        converted[2]
     );
 
     println!("{}: {}", position, value);
 }
 
-fn convert_position(ch: char) -> i32 {
+fn convert_position(ch: char) -> u32 {
     match ch {
         'A' | '1' => 0,
         'B' | '2' => 1,
@@ -71,18 +71,19 @@ fn convert_position(ch: char) -> i32 {
         'F' | '6' => 5,
         'G' | '7' => 6,
         'H' | '8' => 7,
+        _ => panic!("Invalid position provided {}", ch)
     }
 }
 
 fn process_file_contents(file: &File) -> Matrix {
     let contents = file.get_contents();
     let lines = contents.lines();
-    let mut matrix: [[Cell; 8]; 8];
+    let mut matrix: [[Cell; 8]; 8] = [[Cell::new([0; 3]); 8]; 8];
 
     for (i, line) in lines.enumerate() {
         let cells = line.split(";");
         for (j, cell) in cells.enumerate() {
-            let mut values: [i32; 3];
+            let mut values: [i32; 3] = [0; 3];
             let codes = cell.split(",");
             for (k, code) in codes.enumerate() {
                 values[k] = FromStr::from_str(code).unwrap();
@@ -95,6 +96,7 @@ fn process_file_contents(file: &File) -> Matrix {
     Matrix::new(matrix)
 }
 
+#[derive(Copy, Clone)]
 struct Cell {
     values: [i32; 3],
 }
@@ -139,7 +141,7 @@ impl File {
         File { name, contents }
     }
 
-    pub fn get_contents<'a>(self) -> &'a str {
+    pub fn get_contents(&self) -> &str {
         &self.contents
     }
 }
