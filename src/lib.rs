@@ -1,15 +1,15 @@
 extern crate clap;
 
 use clap::ArgMatches;
-use std::process;
-use std::path::Path;
-use std::process::Command;
-use std::fs;
-use std::str::FromStr;
 
-use structure::Matrix;
+use std::fs;
+use std::path::Path;
+use std::process;
+use std::process::Command;
+
 use structure::Cell;
 use structure::File;
+use structure::Matrix;
 
 mod structure;
 
@@ -40,10 +40,8 @@ pub fn process_request(matches: ArgMatches) {
 }
 
 fn print_values(matrix: &Matrix, positions: &str) {
-    let positions_separated = positions.split(",");
-    for position in positions_separated {
-        print_position_value(matrix, position);
-    }
+    positions.split(",")
+        .for_each(|pos| print_position_value(matrix, pos))
 }
 
 fn print_position_value(matrix: &Matrix, position: &str) {
@@ -73,23 +71,24 @@ fn convert_position(ch: char) -> u32 {
 
 fn process_file_contents(file: &File) -> Matrix {
     let contents = file.get_contents();
-    let lines = contents.lines();
     let mut matrix: [[Cell; 8]; 8] = [[Cell::new([0; 3]); 8]; 8];
 
-    for (i, line) in lines.enumerate() {
-        let cells = line.split(";");
-        for (j, cell) in cells.enumerate() {
-            let mut values: [i32; 3] = [0; 3];
-            let codes = cell.split(",");
-            for (k, code) in codes.enumerate() {
-                values[k] = FromStr::from_str(code).unwrap();
-            }
-
-            matrix[i][j] = Cell::new(values);
+    for (i, line) in contents.lines().enumerate() {
+        for (j, cell) in line.split(' ').enumerate() {
+            matrix[i][j] = Cell::new(extract_cell_values(cell));
         }
     }
 
     Matrix::new(matrix)
+}
+
+fn extract_cell_values(cell: &str) -> [i32; 3] {
+    let mut values: [i32; 3] = [0; 3];
+    for (k, code) in cell.chars().enumerate() {
+        values[k] = code.to_digit(10).unwrap() as i32;
+    }
+
+    values
 }
 
 fn decrypt_and_read_file(file_location: &str) -> Result<File, &str> {
